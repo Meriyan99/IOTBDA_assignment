@@ -1,0 +1,305 @@
+[
+    {
+        "id": "f9cac1dd7c823910",
+        "type": "tab",
+        "label": "Future data",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "cb86787f.d9b728",
+        "type": "inject",
+        "z": "f9cac1dd7c823910",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "6b5438a7.2dad48"
+            ]
+        ]
+    },
+    {
+        "id": "afeb6517.c80558",
+        "type": "debug",
+        "z": "f9cac1dd7c823910",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "6b5438a7.2dad48",
+        "type": "file in",
+        "z": "f9cac1dd7c823910",
+        "name": "",
+        "filename": "/home/pi/predictions.csv",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 350,
+        "y": 120,
+        "wires": [
+            [
+                "4ba2efbc.fc131"
+            ]
+        ]
+    },
+    {
+        "id": "4ba2efbc.fc131",
+        "type": "csv",
+        "z": "f9cac1dd7c823910",
+        "name": "",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 230,
+        "y": 220,
+        "wires": [
+            [
+                "afeb6517.c80558",
+                "859fc875.c6dc78",
+                "5dd06cda.8818e4",
+                "5431a28a.97720c"
+            ]
+        ]
+    },
+    {
+        "id": "859fc875.c6dc78",
+        "type": "function",
+        "z": "f9cac1dd7c823910",
+        "name": "prepareGraph",
+        "func": "//generate chart\nvar payload = msg.payload\nvar data = []; //this will be an array of data\nvar labels = []; //this will be an array of labels\n\n\nfor(let i = 0 ; i < payload.length ; i++){\n    var date = payload[i][\"Month\"]\n    var temp = payload[i][\"predicted_temp\"]\n    labels.push(date)\n    data.push(temp);\n}\n\nmsg.payload = [{\n    \"series\" : [\"TemperaturePredictions\"],\n    \"data\": [data],\n    \"labels\": labels\n    \n}];\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 320,
+        "wires": [
+            [
+                "cb8f0490.44aee8"
+            ]
+        ]
+    },
+    {
+        "id": "cb8f0490.44aee8",
+        "type": "ui_chart",
+        "z": "f9cac1dd7c823910",
+        "name": "Temperature Data - Past",
+        "group": "3af1c896.8bc8d8",
+        "order": 9,
+        "width": 14,
+        "height": 6,
+        "label": "Predicted Temperatures",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": true,
+        "ymin": "20",
+        "ymax": "35",
+        "removeOlder": "1000",
+        "removeOlderPoints": "14",
+        "removeOlderUnit": "86400",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": true,
+        "colors": [
+            "#7ce67a",
+            "#aec7e8",
+            "#ff7f0e",
+            "#0a990a",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 650,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5dd06cda.8818e4",
+        "type": "function",
+        "z": "f9cac1dd7c823910",
+        "name": "calcAverageTemperature",
+        "func": "var temp_sum = 0\nvar months = 0\nvar payload = msg.payload\nvar averageTemp = 0\n\nfor(let i = 0 ; i < payload.length ; i++){\n    \n    temp_sum = temp_sum + payload[i][\"predicted_temp\"];\n    months = months+1\n    \n}\naverageTemp = temp_sum/months;\naverageTemp = Math.round(averageTemp * 100) / 100 \n\n\nmsg.payload = {\n    \"temp\":averageTemp,\n    \"months\":months\n}\n   \n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 420,
+        "wires": [
+            [
+                "e2fa40c6.75712",
+                "cd546bee.d94468"
+            ]
+        ]
+    },
+    {
+        "id": "5431a28a.97720c",
+        "type": "function",
+        "z": "f9cac1dd7c823910",
+        "name": "calcMinAndMaxTemperature",
+        "func": "var payload = msg.payload\nvar min = 40\nvar max = 0\n\nfor(let i = 0 ; i < payload.length ; i++){\n    \n    var temp = payload[i][\"predicted_temp\"];\n  \n    //finding the max\n    if(temp>max){\n        max = temp\n    }else{\n        max = max\n    }\n    \n    //finding min\n    if(temp<min){\n        min = temp\n    }else{\n        min = min\n    }\n    \n}\n\nmsg.payload = {\n    \"max\":max,\n    \"min\":min\n}\n   \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 480,
+        "wires": [
+            [
+                "8dd2fb45.6bbc18",
+                "2e8756dc.d544ca"
+            ]
+        ]
+    },
+    {
+        "id": "e2fa40c6.75712",
+        "type": "ui_template",
+        "z": "f9cac1dd7c823910",
+        "group": "3af1c896.8bc8d8",
+        "name": "rangeTempAverage",
+        "order": 8,
+        "width": 14,
+        "height": 1,
+        "format": "<head>\n     <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">\n    <style>\n        \n      #textStyle:{\n          font-size : 29px;\n          color : white;\n      }\n\n    </style>\n\n</head>\n\n<body>\n     \n    \n           <span class=\"btn btn-primary\" > Average Temp- {{msg.payload.temp}} \n                  \n           </span>\n\n</body>\n\n\n\n\n \n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 690,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cd546bee.d94468",
+        "type": "ui_template",
+        "z": "f9cac1dd7c823910",
+        "group": "3af1c896.8bc8d8",
+        "name": "rangeTempobservations",
+        "order": 6,
+        "width": 14,
+        "height": 1,
+        "format": "<head>\n     <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">\n    <style>\n        \n      #textStyle:{\n          font-size : 29px;\n          color : white;\n      }\n\n    </style>\n\n</head>\n\n<body>\n     \n    \n           <span class=\"btn btn-success\" > Total Observations - {{msg.payload.months}} \n                  \n           </span>\n\n</body>\n\n\n\n\n \n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 710,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8dd2fb45.6bbc18",
+        "type": "ui_template",
+        "z": "f9cac1dd7c823910",
+        "group": "3af1c896.8bc8d8",
+        "name": "rangeTemMin",
+        "order": 5,
+        "width": 14,
+        "height": 1,
+        "format": "<head>\n     <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">\n    <style>\n        \n      #textStyle:{\n          font-size : 29px;\n          color : white;\n      }\n\n    </style>\n\n</head>\n\n<body>\n     \n    \n           <span class=\"btn btn-warning\" > Minimum Temperature - {{msg.payload.min}} \n                  \n           </span>\n\n</body>\n\n\n\n\n \n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 680,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2e8756dc.d544ca",
+        "type": "ui_template",
+        "z": "f9cac1dd7c823910",
+        "group": "3af1c896.8bc8d8",
+        "name": "rangeTemMax",
+        "order": 7,
+        "width": 14,
+        "height": 1,
+        "format": "<head>\n     <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">\n    <style>\n        \n      #textStyle:{\n          font-size : 29px;\n          color : white;\n      }\n\n    </style>\n\n</head>\n\n<body>\n     \n    \n           <span class=\"btn btn-danger\" > MAximum Temperature - {{msg.payload.max}} \n                  \n           </span>\n\n</body>\n\n\n\n\n \n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 680,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3af1c896.8bc8d8",
+        "type": "ui_group",
+        "name": "PredictedTemps",
+        "tab": "823b769d.4a9c88",
+        "order": 1,
+        "disp": false,
+        "width": "28",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "823b769d.4a9c88",
+        "type": "ui_tab",
+        "name": "Current And Future",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    }
+]

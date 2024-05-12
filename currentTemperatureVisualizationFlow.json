@@ -1,0 +1,282 @@
+[
+    {
+        "id": "d72a210a.8940a",
+        "type": "tab",
+        "label": "current_temp_flow",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "779f32a9.0232ec",
+        "type": "mqtt in",
+        "z": "d72a210a.8940a",
+        "name": "Cuurent_Temperature",
+        "topic": "Group11/Temperature",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "51556d6e.d6bce4",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 220,
+        "y": 140,
+        "wires": [
+            [
+                "90a98027.ed87",
+                "cc266508.1ff6a8",
+                "ad3845e0.576018"
+            ]
+        ]
+    },
+    {
+        "id": "90a98027.ed87",
+        "type": "ui_gauge",
+        "z": "d72a210a.8940a",
+        "name": "",
+        "group": "3af1c896.8bc8d8",
+        "order": 3,
+        "width": 7,
+        "height": 5,
+        "gtype": "gage",
+        "title": "Temperature",
+        "label": "*c",
+        "format": "{{value}}",
+        "min": "15",
+        "max": "40",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 450,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "df79cc70.bea0b",
+        "type": "debug",
+        "z": "d72a210a.8940a",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "cc266508.1ff6a8",
+        "type": "function",
+        "z": "d72a210a.8940a",
+        "name": "getTempStatus",
+        "func": "var payload = msg.payload\nvar currentTemp  = parseInt(payload) \nvar status = \"\"\n\nvar gsDayNames = [\n  'Sunday',\n  'Monday',\n  'Tuesday',\n  'Wednesday',\n  'Thursday',\n  'Friday',\n  'Saturday'\n];\n\nvar today = new Date()\nvar dayName = gsDayNames[today.getDay()];\nvar date = today.toString().slice(0,10)\nvar time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n\n\nif(currentTemp<20){\n    status=\"Cold\"\n}else if(currentTemp<=30){\n    status=\"Warm\"\n}else{\n    status=\"Hot\"\n}\n\nmsg.payload = {\n    \"temp\":currentTemp,\n    \"tempStatus\" :status,\n    \"date\":date,\n    \"dayName\":dayName,\n    \"time\": time\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 280,
+        "wires": [
+            [
+                "df79cc70.bea0b",
+                "a413956e.f45768"
+            ]
+        ]
+    },
+    {
+        "id": "a413956e.f45768",
+        "type": "ui_template",
+        "z": "d72a210a.8940a",
+        "group": "3af1c896.8bc8d8",
+        "name": "CurrentTemperatureCard",
+        "order": 4,
+        "width": 7,
+        "height": 5,
+        "format": "<head>\n    <style>\n        *\n        {\n          margin: 0;\n          padding: 0;\n          outline: none;\n        }\n        \n        body\n        {\n          font-family: 'Roboto', sans-serif;\n          overflow: hidden;\n          background: #d22222;;\n        }\n        \n        \n        div.widget\n        {\n          position: relative;\n          width: 355px;\n          height: 250px;\n          \n          background-color: #fcfdfd;\n          border-radius: 9px;\n          padding: 25px;\n          padding-right: 30px;\n          box-shadow: 0px 31px 35px -26px #080c21;\n        }\n       \n        \n        div.left-panel\n        {\n          align-items :'center';\n        }\n        \n        div.date\n        {\n          font-size: 14px;\n          font-weight: bold;\n          color: rgba(0,0,0,0.5);\n        }\n        \n        div.city\n        {\n          font-size: 31px;\n          font-weight: bold;\n          text-transform: uppercase;\n          padding-top: 5px;\n          color: rgba(0,0,0,0.7);\n        }\n          div.tempStatus\n        {\n          font-size: 41px;\n          font-weight: bold;\n          text-transform: uppercase;\n          padding-top: 2px;\n          color: rgba(0,0,0,0.7);\n          align-self : 'center';\n        }\n        div.temp\n        {\n          font-size: 61px;\n          color: rgba(0,0,0,0.9);\n          font-weight: 100;\n        }\n        \n        div.panel\n        {\n          display: inline-block;\n        }\n        \n        div.right-panel\n        {\n          position: absolute;\n          float: right;\n          top: 0;\n          margin-top: 40px;\n          padding-left: 5px;\n          \n        }\n         \n        .widget[data-status=\"Warm\"]{\n            background-color: yellow;;\n        }\n        .widget[data-status=\"Cool\"]{\n            background-color: green;;\n        }\n         .widget[data-status=\"Hot\"]{\n            background-color: red;;\n        }\n        \n    </style>\n</head>\n<body>\n    \n    <div  data-status=\"{{msg.payload.tempStatus}}\" class=\"widget\">\n            \n            <div class=\"left-panel panel\">\n                <div class=\"date\">\n                    {{msg.payload.date}}\n                </div>\n                <div class=\"city\">\n                    {{msg.payload.time}}\n                </div>\n             \n                <div class=\"temp\">\n                   <img src=\"https://s5.postimg.cc/yzcm7htyb/image.png\" alt=\"\" width=\"60\">\n                   {{msg.payload.temp}}&deg;C\n                </div>\n                 <div class=\"tempStatus\" >\n                    {{msg.payload.tempStatus}}\n                </div>\n                \n            </div>\n         \n         \n\n        </div>\n</body>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 650,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ad3845e0.576018",
+        "type": "function",
+        "z": "d72a210a.8940a",
+        "name": "DrawLiveChart",
+        "func": "payload = msg.payload\nvar temps=flow.get('tempReading') || [];\nvar times=flow.get('time') || [];\n\nvar today = new Date();\nvar time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n\ntimes.push(time)\nflow.set('time', times)\n\ntemps.push(payload)\nflow.set('tempReading',temps);\n\nmsg.payload = [{\n    \"series\":[\"Temperature\"],\n    \"data\":[temps],\n    \"labels\": times,\n    \"date\":today\n}]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 420,
+        "wires": [
+            [
+                "757b073d.29e148",
+                "2317ed80.a0d902"
+            ]
+        ]
+    },
+    {
+        "id": "757b073d.29e148",
+        "type": "debug",
+        "z": "d72a210a.8940a",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "2317ed80.a0d902",
+        "type": "ui_chart",
+        "z": "d72a210a.8940a",
+        "name": "",
+        "group": "3af1c896.8bc8d8",
+        "order": 10,
+        "width": 14,
+        "height": 5,
+        "label": "Live Temperature Chart",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "18",
+        "ymax": "40",
+        "removeOlder": 1,
+        "removeOlderPoints": "50000",
+        "removeOlderUnit": "1",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#07e4bf",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 690,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "66635d2e.ec07f4",
+        "type": "ui_template",
+        "z": "d72a210a.8940a",
+        "group": "3af1c896.8bc8d8",
+        "name": "Current Temperature",
+        "order": 1,
+        "width": 14,
+        "height": 2,
+        "format": "<head>\n    <style>\n    .card {\n      background: #353935;\n      border-radius: 2px;\n      display: inline-block;\n      height: 50px;\n      margin: 1rem;\n      position: relative;\n      width: 700px;\n    }\n    .card-1 {\n      box-shadow: 0 2px 5px blue, 0 1px 2px rgba(0,0,0,0.24);\n      transition: all 0.3s cubic-bezier(.25,.8,.25,1);\n      align-items:center;\n      justify-content :center;\n    }\n    \n    .card-1:hover {\n      box-shadow: 0 10px 10px blue, 0 10px 10px rgba(0,0,0,0.22);\n    }\n    .textStyle {\n        color : black;,\n        font-size : 30px;\n    }\n        \n    </style>\n</head>\n<body>\n   <div class=\"card card-1\">\n       <font class=\"textStyle\">CURRENT TEMPERATURE</font>\n   </div>\n</body>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 660,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1e7f1aaa.d44515",
+        "type": "ui_template",
+        "z": "d72a210a.8940a",
+        "group": "3af1c896.8bc8d8",
+        "name": "Tmperature For Next 12 Months",
+        "order": 2,
+        "width": 14,
+        "height": 2,
+        "format": "<head>\n    <style>\n    .card {\n      background: #fff;\n      border-radius: 2px;\n      display: inline-block;\n      height: 50px;\n      margin: 1rem;\n      position: relative;\n      width: 700px;\n    }\n    .card-1 {\n      box-shadow: 0 2px 5px blue, 0 1px 2px rgba(0,0,0,0.24);\n      transition: all 0.3s cubic-bezier(.25,.8,.25,1);\n      align-items:center;\n      justify-content :center;\n    }\n    \n    .card-1:hover {\n      box-shadow: 0 10px 10px blue, 0 10px 10px rgba(0,0,0,0.22);\n    }\n    .textStyle {\n        color : black;,\n        font-size : 30px;\n    }\n        \n    </style>\n</head>\n<body>\n   <div class=\"card card-1\">\n       <font class=\"textStyle\">TEMPERATURE FOR NEXT 12 MONTHS</font>\n   </div>\n</body>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 670,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "51556d6e.d6bce4",
+        "type": "mqtt-broker",
+        "name": "CurrentTempReadings",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "3af1c896.8bc8d8",
+        "type": "ui_group",
+        "name": "PredictedTemps",
+        "tab": "823b769d.4a9c88",
+        "order": 1,
+        "disp": false,
+        "width": "28",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "823b769d.4a9c88",
+        "type": "ui_tab",
+        "name": "Current And Future",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    }
+]
